@@ -23,6 +23,7 @@ const defaultConfig: WallpaperConfig = {
   showWeekNumbers: false,
   dividers: { enabled: false, positions: [], color: '#000000', opacity: 0.15 },
   customGradient: false,
+  additionalTexts: [],
 };
 
 let config: WallpaperConfig = { ...defaultConfig };

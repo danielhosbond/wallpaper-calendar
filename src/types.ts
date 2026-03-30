@@ -48,6 +48,15 @@ export interface DividerConfig {
   opacity: number;
 }
 
+export interface AdditionalText {
+  text: string;
+  x: number; // 0-1 normalized
+  y: number; // 0-1 normalized
+  color: string;
+  size: number; // multiplier, 1 = default
+  opacity: number; // 0-1
+}
+
 export interface WallpaperConfig {
   month: number; // 1-12
   year: number;
@@ -59,6 +68,7 @@ export interface WallpaperConfig {
   showWeekNumbers: boolean;
   dividers: DividerConfig;
   customGradient: boolean;
+  additionalTexts: AdditionalText[];
 }
 
 export interface ElementBounds {

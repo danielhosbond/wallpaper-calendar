@@ -1,4 +1,4 @@
-import { Resolution, ElementKey } from '../types';
+import { Resolution, ElementKey, AdditionalText } from '../types';
 import { getState, setState } from '../state';
 import { getDefaultGradient } from './color-presets';
 import { PRESETS } from './preset-positions';
@@ -136,6 +136,12 @@ export function buildControls(container: HTMLElement) {
         ${PRESETS.map((p, i) => `<button class="preset-btn${i === 0 ? ' active' : ''}" data-preset="${i}">${p.name}</button>`).join('')}
       </div>
     </div>
+
+    <div class="section-divider"></div>
+    <div class="section-label">Additional Text</div>
+    <div id="additional-texts-section"></div>
+    <button id="add-text-btn" class="add-text-btn">+ Add Text</button>
+
     <button id="ctrl-export" class="export-btn">Export PNG</button>
   `;
 
@@ -359,4 +365,107 @@ export function buildControls(container: HTMLElement) {
   exportBtn.addEventListener('click', () => {
     exportWallpaper(getState());
   });
+
+  const addTextBtn = container.querySelector('#add-text-btn') as HTMLButtonElement;
+
+  function rebuildAdditionalTextsUI() {
+    const section = container.querySelector('#additional-texts-section') as HTMLElement;
+    const texts = getState().additionalTexts;
+
+    section.innerHTML = texts.map((t, i) => `
+      <div class="additional-text-item">
+        <div class="style-row">
+          <input type="color" id="at-color-${i}" value="${t.color}" class="style-color">
+          <input type="text" id="at-text-${i}" value="${escapeAttr(t.text)}" placeholder="Enter text…" class="at-text-input">
+          <button id="at-remove-${i}" class="remove-text-btn" title="Remove">×</button>
+        </div>
+        <div class="style-row">
+          <span class="pos-label">Size</span>
+          <input type="range" id="at-size-${i}" min="0.3" max="4" step="0.05" value="${t.size}" class="style-slider">
+          <span id="at-size-val-${i}" class="style-val">${t.size.toFixed(1)}x</span>
+        </div>
+        <div class="style-row">
+          <span class="pos-label">Op</span>
+          <input type="range" id="at-opacity-${i}" min="0" max="1" step="0.01" value="${t.opacity}" class="style-slider">
+          <span id="at-opacity-val-${i}" class="style-val">${Math.round(t.opacity * 100)}%</span>
+        </div>
+        <div class="style-row">
+          <span class="pos-label">X</span>
+          <input type="range" id="at-x-${i}" min="0" max="1" step="0.01" value="${t.x}" class="style-slider">
+          <span id="at-x-val-${i}" class="style-val">${Math.round(t.x * 100)}%</span>
+        </div>
+        <div class="style-row">
+          <span class="pos-label">Y</span>
+          <input type="range" id="at-y-${i}" min="0" max="1" step="0.01" value="${t.y}" class="style-slider">
+          <span id="at-y-val-${i}" class="style-val">${Math.round(t.y * 100)}%</span>
+        </div>
+      </div>
+    `).join('');
+
+    texts.forEach((_, i) => {
+      function updateField(patch: Partial<AdditionalText>) {
+        const s = getState();
+        const updated = s.additionalTexts.map((t, j) => j === i ? { ...t, ...patch } : t);
+        setState({ additionalTexts: updated });
+      }
+
+      const colorEl = section.querySelector(`#at-color-${i}`) as HTMLInputElement;
+      const textEl = section.querySelector(`#at-text-${i}`) as HTMLInputElement;
+      const removeEl = section.querySelector(`#at-remove-${i}`) as HTMLButtonElement;
+      const sizeEl = section.querySelector(`#at-size-${i}`) as HTMLInputElement;
+      const sizeValEl = section.querySelector(`#at-size-val-${i}`) as HTMLSpanElement;
+      const opacityEl = section.querySelector(`#at-opacity-${i}`) as HTMLInputElement;
+      const opacityValEl = section.querySelector(`#at-opacity-val-${i}`) as HTMLSpanElement;
+      const xEl = section.querySelector(`#at-x-${i}`) as HTMLInputElement;
+      const xValEl = section.querySelector(`#at-x-val-${i}`) as HTMLSpanElement;
+      const yEl = section.querySelector(`#at-y-${i}`) as HTMLInputElement;
+      const yValEl = section.querySelector(`#at-y-val-${i}`) as HTMLSpanElement;
+
+      colorEl.addEventListener('input', () => updateField({ color: colorEl.value }));
+      textEl.addEventListener('input', () => updateField({ text: textEl.value }));
+
+      sizeEl.addEventListener('input', () => {
+        const size = Number(sizeEl.value);
+        sizeValEl.textContent = `${size.toFixed(1)}x`;
+        updateField({ size });
+      });
+
+      opacityEl.addEventListener('input', () => {
+        const opacity = Number(opacityEl.value);
+        opacityValEl.textContent = `${Math.round(opacity * 100)}%`;
+        updateField({ opacity });
+      });
+
+      xEl.addEventListener('input', () => {
+        const x = Number(xEl.value);
+        xValEl.textContent = `${Math.round(x * 100)}%`;
+        updateField({ x });
+      });
+
+      yEl.addEventListener('input', () => {
+        const y = Number(yEl.value);
+        yValEl.textContent = `${Math.round(y * 100)}%`;
+        updateField({ y });
+      });
+
+      removeEl.addEventListener('click', () => {
+        const s = getState();
+        setState({ additionalTexts: s.additionalTexts.filter((_, j) => j !== i) });
+        rebuildAdditionalTextsUI();
+      });
+    });
+  }
+
+  addTextBtn.addEventListener('click', () => {
+    const s = getState();
+    const newText: AdditionalText = { text: '', x: 0.5, y: 0.9, color: '#ffffff', size: 1, opacity: 0.85 };
+    setState({ additionalTexts: [...s.additionalTexts, newText] });
+    rebuildAdditionalTextsUI();
+  });
+
+  rebuildAdditionalTextsUI();
+}
+
+function escapeAttr(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }

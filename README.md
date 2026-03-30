@@ -9,6 +9,7 @@ A web app for creating minimalist calendar wallpapers with gradient backgrounds.
 - **Month name, year, and calendar grid** — each independently customizable
 - **Calendar grid** toggles between dot-matrix and day numbers
 - **Week numbers** (ISO 8601) — optional
+- **Additional text fields** — add any number of free-text labels with independent color, size, opacity, and position controls
 - **Drag-to-reposition** elements directly on the canvas
 - **X/Y position sliders** and size/opacity controls per element
 - **Layout presets**: Classic, Centered, Corner, Minimal, Sections (with divider lines)
